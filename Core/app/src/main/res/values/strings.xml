@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Core</string>
+    <string name="open_module">Abrir Módulo</string>
+    <string name="one_day">1 Dia</string>
+    <string name="one_week">1 semana</string>
+    <string name="one_month">1 mês</string>
+    <string name="one_year">1 ano</string>
+    <string name="btn_all">Tudo</string>
+</resources>

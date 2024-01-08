@@ -6,4 +6,12 @@
     <string name="one_month">1 mês</string>
     <string name="one_year">1 ano</string>
     <string name="btn_all">Tudo</string>
+    <string name="todo">TODO</string>
+    <string name="petr4">PETR4</string>
+    <string name="petrobras_sa">Petrobras SA</string>
+    <string name="r_45_00">R$ 45,00</string>
+    <string name="_1_45">1,45 %</string>
+    <string name="hist_rico">Histórico</string>
+    <string name="vender">VENDER</string>
+    <string name="comprar">COMPRAR</string>
 </resources>

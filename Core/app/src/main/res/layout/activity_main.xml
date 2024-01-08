@@ -11,8 +11,8 @@
         android:id="@+id/customAppBar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:elevation="0dp"
-        android:layout_marginTop="10dp"
+        android:elevation="@dimen/dimen_0dp"
+        android:layout_marginTop="@dimen/dimen_10dp"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints">
 
@@ -29,8 +29,10 @@
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
                 android:backgroundTint="@color/colorPrimary"
-                android:padding="8dp"
-                android:src="@drawable/ic_back" />
+                android:contentDescription="@string/todo"
+                android:padding="@dimen/dimen_8dp"
+                android:src="@drawable/ic_back"
+                tools:ignore="DuplicateSpeakableTextCheck,ImageContrastCheck" />
 
 
             <!-- Botão com Ícone de Estrela -->
@@ -40,96 +42,90 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:layout_marginEnd="25dp"
+                android:layout_marginEnd="@dimen/dimen_25dp"
                 android:background="?android:attr/selectableItemBackground"
-                android:padding="8dp"
+                android:padding="@dimen/dimen_8dp"
                 android:src="@android:drawable/btn_star_big_on"
-                app:tint="@color/white" />
+                app:tint="@color/white"
+                android:contentDescription="@string/todo" />
         </RelativeLayout>
     </androidx.appcompat.widget.Toolbar>
 
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="61dp"
-        android:layout_marginStart="25dp"
-        android:layout_marginVertical="18dp"
-        android:layout_marginTop="1dp"
-        android:layout_marginEnd="25dp"
+        android:layout_height="@dimen/dimen_61dp"
+        android:layout_marginVertical="@dimen/dimen_18dp"
+        android:layout_marginStart="@dimen/dimen_25dp"
+        android:layout_marginTop="@dimen/dimen_1dp"
+        android:layout_marginEnd="@dimen/dimen_25dp"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/customAppBar"
-        tools:ignore="MissingConstraints">
+        tools:ignore="MissingConstraints,TextSizeCheck">
 
-        <!-- Logo com Cantos Arredondados -->
         <ImageView
             android:id="@+id/logoImageView"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="8dp"
-            android:layout_toEndOf="@id/rllHeaderCompany"
+            android:layout_width="@dimen/dimen_48dp"
+            android:layout_height="@dimen/dimen_48dp"
+            android:layout_marginStart="@dimen/dimen_8dp"
             android:background="@drawable/rounded_corner_background"
             android:src="@drawable/ic_logo_petr4" />
 
-        <!-- Layout com 2 Textos -->
         <RelativeLayout
             android:id="@+id/rllHeaderCompany"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="8dp"
-            android:layout_toEndOf="@id/logoImageView"
+            android:layout_marginStart="@dimen/dimen_8dp"
             android:layout_weight="7">
 
             <TextView
                 android:id="@+id/txtStockID"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="PETR4"
                 android:fontFamily="@font/montserratbold"
+                android:text="@string/petr4"
                 android:textColor="@color/white"
-                android:textSize="16dp" />
+                android:textSize="@dimen/dimen_16sp" />
 
             <TextView
                 android:id="@+id/txtCompany"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/txtStockID"
-                android:text="Petrobras SA"
                 android:fontFamily="@font/montserratmedium"
+                android:text="@string/petrobras_sa"
                 android:textColor="@color/colorPrimaryDark"
-                android:textSize="16dp" />
+                android:textSize="@dimen/dimen_16sp" />
         </RelativeLayout>
 
         <LinearLayout
             android:id="@+id/lnlStockPrices"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="@dimen/dimen_8dp"
             android:layout_weight="0.2"
-            android:orientation="vertical"
-            android:gravity="end">
+            android:gravity="end"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/txtStockPrice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="R$ 45,00"
-                android:textColor="@color/white"
                 android:fontFamily="@font/montserratmedium"
-                android:textSize="16dp" />
+                android:text="@string/r_45_00"
+                android:textColor="@color/white"
+                android:textSize="@dimen/dimen_16sp" />
 
             <TextView
                 android:id="@+id/txtStockPercent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/txtStockPrice"
                 android:fontFamily="@font/montserratblack"
-                android:text="1,45 %"
+                android:text="@string/_1_45"
                 android:textColor="@android:color/holo_red_dark"
-                android:textSize="13dp" />
+                android:textSize="@dimen/dimen_13sp" />
         </LinearLayout>
 
     </LinearLayout>
@@ -139,7 +135,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
 
-        android:layout_marginVertical="18dp"
+        android:layout_marginVertical="@dimen/dimen_18dp"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -149,16 +145,16 @@
         <com.github.mikephil.charting.charts.LineChart
             android:id="@+id/lineChart"
             android:layout_width="match_parent"
-            android:layout_height="298dp"
-            android:layout_marginStart="25dp"
-            android:layout_marginEnd="25dp"
+            android:layout_height="@dimen/dimen_298dp"
+            android:layout_marginStart="@dimen/dimen_25dp"
+            android:layout_marginEnd="@dimen/dimen_25dp"
 
-            android:paddingBottom="50dp" />
+            android:paddingBottom="@dimen/dimen_50dp" />
 
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
+            android:layout_marginTop="@dimen/dimen_25dp"
             android:fadeScrollbars="true"
             android:scrollbars="none">
 
@@ -166,17 +162,18 @@
                 android:id="@+id/lnlListBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:orientation="horizontal"></LinearLayout>
+                android:orientation="horizontal"/>
         </HorizontalScrollView>
 
 
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/linearLayout3"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginStart="25dp"
-        android:layout_marginEnd="25dp"
+        android:layout_height="@dimen/dimen_50dp"
+        android:layout_marginStart="@dimen/dimen_25dp"
+        android:layout_marginEnd="@dimen/dimen_25dp"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -187,12 +184,12 @@
             android:id="@+id/btnHistory"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="50dp"
-            android:layout_marginEnd="50dp"
-            android:background="@drawable/rounded_button"
+            android:layout_marginStart="@dimen/dimen_50dp"
+            android:layout_marginEnd="@dimen/dimen_50dp"
             android:layout_weight="1"
-            android:textColor="@color/white"
-            android:text="Histórico" />
+            android:background="@drawable/rounded_button"
+            android:text="@string/hist_rico"
+            android:textColor="@color/white" />
     </LinearLayout>
 
     <LinearLayout
@@ -200,37 +197,65 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="@dimen/dimen_20dp"
         android:orientation="horizontal"
-        android:layout_marginStart="25dp"
-        android:layout_marginEnd="25dp"
+        android:layout_marginStart="@dimen/dimen_25dp"
+        android:layout_marginEnd="@dimen/dimen_25dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:layout_editor_absoluteX="25dp">
+        tools:layout_editor_absoluteX="@dimen/dimen_25dp">
 
         <!-- Botão VENDER -->
         <Button
             android:id="@+id/btnVender"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
+            android:layout_marginEnd="@dimen/dimen_10dp"
             android:layout_weight="2"
             android:background="@drawable/rounded_button"
-            android:padding="16dp"
-            android:text="VENDER"
+            android:padding="@dimen/dimen_16dp"
+            android:text="@string/vender"
             android:textColor="#FFFFFF"
-            android:textSize="18sp" />
+            android:textSize="@dimen/dimen_18sp" />
 
         <!-- Botão COMPRAR -->
         <Button
             android:id="@+id/btnComprar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="@dimen/dimen_10dp"
             android:layout_weight="2"
             android:background="@drawable/rounded_button_active"
-            android:padding="16dp"
-            android:text="COMPRAR"
+            android:padding="@dimen/dimen_16dp"
+            android:text="@string/comprar"
             android:textColor="#FFFFFF"
-            android:textSize="18sp" />
+            android:textSize="@dimen/dimen_18sp" />
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/modalLoad"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints"
+        android:background="@color/colorPrimary">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:indeterminateTint="@color/colorSecondary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/customAppBar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="MissingConstraints" />
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

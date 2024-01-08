@@ -2,58 +2,76 @@ package com.stocks.core;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.content.ContextCompat;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.BarData;
-import com.github.mikephil.charting.data.BarDataSet;
-import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.formatter.ValueFormatter;
-import com.stocks.core.model.StockModels;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.google.gson.Gson;
+import com.stocks.core.model.Chart;
+import com.stocks.core.model.Meta;
+import com.stocks.core.model.Result;
+import com.stocks.core.model.StockModel;
 import com.stocks.core.network.ApiClient;
+import com.stocks.core.utils.CustomMarker;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.embedding.engine.FlutterEngineCache;
 import io.flutter.embedding.engine.dart.DartExecutor;
+import io.flutter.plugin.common.MethodChannel;
 import retrofit2.Call;
 import retrofit2.Callback;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String FLUTTER_ENGINE_ID = "module_flutter_engine";
+    private static final String FLUTTER_CHANNEL = "stocks_channel";
+    private MethodChannel flutterMethodChannel;
     private ApiClient apiClient;
     private final String selectedInterval1 = "max";
     private final String selectedInterval2 = "1mo";
     private final List<Button> buttons = new ArrayList<>();
     private TextView txtStockPercent;
     private TextView txtStockPrice;
+    private TextView txtStockID;
     private Button btnHistory;
+    private ProgressBar progressBar;
+    private LinearLayout modalLoad;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final int updateInterval = 1000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +80,11 @@ public class MainActivity extends AppCompatActivity {
 
         apiClient = new ApiClient();
 
+        modalLoad = findViewById(R.id.modalLoad);
+        progressBar = findViewById(R.id.progressBar);
         txtStockPercent = findViewById(R.id.txtStockPercent);
         txtStockPrice = findViewById(R.id.txtStockPrice);
+        txtStockID = findViewById(R.id.txtStockID);
         btnHistory = findViewById(R.id.btnHistory);
 
         fetchAndUpdateStockData();
@@ -73,68 +94,79 @@ public class MainActivity extends AppCompatActivity {
                 DartExecutor.DartEntrypoint.createDefault()
         );
 
-        FlutterEngineCache.getInstance().put(FLUTTER_ENGINE_ID, flutterEngine);
+        FlutterEngineCache.getInstance().put(FLUTTER_CHANNEL, flutterEngine);
+
+        flutterMethodChannel = new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), FLUTTER_CHANNEL);
 
         btnHistory.setOnClickListener(v -> {
-            startActivity(FlutterActivity.withCachedEngine(FLUTTER_ENGINE_ID)
+            startActivity(FlutterActivity.withCachedEngine(FLUTTER_CHANNEL)
                     .build(this));
         });
 
 
         fetchData(selectedInterval1, selectedInterval2);
+        //startDataUpdate();
+    }
 
+    private void startDataUpdate() {
+        final Runnable updateRunnable = new Runnable() {
+            @Override
+            public void run() {
+                fetchAndUpdateStockData();
+
+                handler.postDelayed(this, updateInterval);
+            }
+        };
+
+        handler.post(updateRunnable);
     }
 
     private void fetchAndUpdateStockData() {
-        apiClient.fetchStockData("PETR4.SA", new Callback<StockModels>() {
+        progressBar.setVisibility(View.VISIBLE);
+        modalLoad.setVisibility(View.VISIBLE);
+        apiClient.fetchStockData("PETR4.SA", new Callback<StockModel>() {
             @Override
-            public void onResponse(@NonNull Call<StockModels> call, @NonNull retrofit2.Response<StockModels> response) {
+            public void onResponse(@NonNull Call<StockModel> call, @NonNull retrofit2.Response<StockModel> response) {
+                progressBar.setVisibility(View.GONE);
+                modalLoad.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
-                    StockModels stockModels = response.body();
-                    StockModels.Chart.Result result = stockModels.getChart().getResult().get(0);
+                    StockModel stockModels = response.body();
+                    Chart chart = stockModels.getChart();
+                    Result result = chart.getResult().get(0);
 
                     processStockData(result);
+
+                    sendDataToFlutter(stockModels.getChart().getResult().get(0).getTimestamp(), stockModels.getChart().getResult().get(0).getIndicators().getQuote().get(0).getClose());
                 } else {
 
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<StockModels> call, Throwable t) {
-
+            public void onFailure(@NonNull Call<StockModel> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                modalLoad.setVisibility(View.GONE);
             }
         });
     }
 
-    private void processStockData(StockModels.Chart.Result result) {
-        if (result != null) {
-            double regularMarketPrice = result.getMeta().getRegularMarketPrice();
-            double previousClose = result.getMeta().getChartPreviousClose();
+    private void sendDataToFlutter(List<Long> timestamps, List<Double> closes) {
+        Map<String, Object> stockData = new HashMap<>();
+        stockData.put("timestamps", timestamps);
+        stockData.put("closes", closes);
 
-            double changePercentage = ((regularMarketPrice - previousClose) / previousClose) * 100;
-
-            txtStockPercent.setText(String.format(Locale.getDefault(), "%.2f", changePercentage));
-            txtStockPrice.setText(String.format(Locale.getDefault(), "R$ %.2f", regularMarketPrice));
-
-            if (changePercentage < 0) {
-                txtStockPercent.setTextColor(Color.RED);
-            } else if (changePercentage > 0) {
-                txtStockPercent.setTextColor(Color.GREEN);
-            } else {
-            }
-        }
+        flutterMethodChannel.invokeMethod("updateStockData", stockData);
     }
 
-
-    private void setupRangeButtons(StockModels.Meta meta) {
+    private void setupRangeButtons(Meta meta) {
         List<String> validRanges = meta.getValidRanges();
         int totalButtons = validRanges.size();
 
-        addButton(selectedInterval1, meta.getGranularity(), 100, 15, true);
+        addButton(selectedInterval1, meta.getDataGranularity(), 100, 15, true);
 
         for (int i = 0; i < totalButtons; i++) {
             String range = validRanges.get(i);
-            String granularity = meta.getGranularity();
+            String granularity = meta.getDataGranularity();
 
             int marginLeft = (i == 0) ? 15 : 15;
 
@@ -145,6 +177,27 @@ public class MainActivity extends AppCompatActivity {
                 updateButtonState(existingButton, range, granularity, marginLeft, marginRight);
             } else if (!range.equals(selectedInterval1)) {
                 addButton(range, granularity, marginLeft, marginRight, false);
+            }
+        }
+    }
+
+    private void processStockData(Result result) {
+        if (result != null) {
+            double regularMarketPrice = result.getMeta().getRegularMarketPrice();
+            double previousClose = result.getMeta().getChartPreviousClose();
+            String symbol = result.getMeta().getSymbol();
+
+            double changePercentage = ((regularMarketPrice - previousClose) / previousClose) * 100;
+
+            txtStockPercent.setText(String.format(Locale.getDefault(), "%.2f%%", changePercentage));
+            txtStockPrice.setText(String.format(Locale.getDefault(), "R$ %.2f", regularMarketPrice));
+            txtStockID.setText(symbol);
+
+            if (changePercentage < 0) {
+                txtStockPercent.setTextColor(Color.RED);
+            } else if (changePercentage > 0) {
+                txtStockPercent.setTextColor(Color.GREEN);
+            } else {
             }
         }
     }
@@ -170,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         button.setOnClickListener(v -> {
-            fetchData(range, "1mo");
+            fetchData(range, granularity);
             clearButtonStates();
             button.setBackgroundResource(R.drawable.rounded_button_active);
         });
@@ -240,13 +293,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchData(String range, String granularity) {
-        apiClient.fetchChartData("PETR4.SA", range, granularity, new Callback<StockModels>() {
+        progressBar.setVisibility(View.VISIBLE);
+        modalLoad.setVisibility(View.VISIBLE);
+        apiClient.fetchChartData("PETR4.SA", range, granularity, new Callback<StockModel>() {
             @Override
-            public void onResponse(@NonNull Call<StockModels> call, @NonNull retrofit2.Response<StockModels> response) {
+            public void onResponse(@NonNull Call<StockModel> call, @NonNull retrofit2.Response<StockModel> response) {
+                progressBar.setVisibility(View.GONE);
+                modalLoad.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
-                    StockModels stockModels = response.body();
-                    StockModels.Chart.Result result = stockModels.getChart().getResult().get(0);
-                    StockModels.Meta meta = result.getMeta();
+                    StockModel stockModels = response.body();
+                    Result result = stockModels.getChart().getResult().get(0);
+                    Meta meta = result.getMeta();
                     updateChart(stockModels);
                     setupRangeButtons(meta);
                 } else {
@@ -255,18 +312,19 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(@NonNull Call<StockModels> call, Throwable t) {
-
+            public void onFailure(@NonNull Call<StockModel> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                modalLoad.setVisibility(View.GONE);
             }
         });
     }
 
-    private void updateChart(StockModels stockModels) {
+    private void updateChart(StockModel stockModels) {
         if (stockModels != null && stockModels.getChart() != null) {
-            List<StockModels.Chart.Result> results = stockModels.getChart().getResult();
+            List<Result> results = stockModels.getChart().getResult();
 
             if (results != null && !results.isEmpty()) {
-                StockModels.Chart.Result result = results.get(0);
+                Result result = results.get(0);
 
                 List<Long> timestamps = result.getTimestamp();
                 List<Double> closes = result.getIndicators().getQuote().get(0).getClose();
@@ -288,11 +346,24 @@ public class MainActivity extends AppCompatActivity {
                 dataSet.setDrawCircles(false);
                 dataSet.setDrawValues(false);
                 dataSet.setLineWidth(3);
+                dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER); // Adicione essa linha para uma curva suave
 
                 LineData lineData = new LineData(dataSet);
 
                 LineChart lineChart = findViewById(R.id.lineChart);
                 lineChart.setData(lineData);
+
+                int lastIndex = entries.size() - 1;
+                if (lastIndex >= 0) {
+                    Entry lastEntry = entries.get(lastIndex);
+
+                    CustomMarker markerView = new CustomMarker(this, R.layout.custom_marker_view);
+                    markerView.setChartView(lineChart);
+                    lineChart.setMarker(markerView);
+
+                    Highlight highlight = new Highlight(lastEntry.getX(), lastEntry.getY(), 0);
+                    lineChart.highlightValue(highlight);
+                }
 
                 Legend legend = lineChart.getLegend();
                 legend.setEnabled(false);
@@ -322,12 +393,24 @@ public class MainActivity extends AppCompatActivity {
                 leftAxis.setValueFormatter(new ValueFormatter() {
                     @Override
                     public String getAxisLabel(float value, AxisBase axis) {
-                        return "R$ " + String.format(Locale.getDefault(), "%.2f", value);
+                        return "";
                     }
                 });
 
                 YAxis rightAxis = lineChart.getAxisRight();
-                rightAxis.setEnabled(false);
+                rightAxis.setAxisMinimum(0f);
+                rightAxis.setLabelCount(7, true);
+                rightAxis.setGranularity(10f);
+                rightAxis.setTextSize(13f);
+                rightAxis.setTextColor(Color.GRAY);
+
+                rightAxis.setValueFormatter(new ValueFormatter() {
+                    @Override
+                    public String getAxisLabel(float value, AxisBase axis) {
+                        return "R$ " + String.format(Locale.getDefault(), "%.2f", value);  // Adicione o prefixo "R$"
+                    }
+                });
+
 
                 lineChart.invalidate();
             }

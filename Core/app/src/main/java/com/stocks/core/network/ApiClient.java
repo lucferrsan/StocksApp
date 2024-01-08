@@ -1,7 +1,7 @@
 package com.stocks.core.network;
 
 import com.stocks.core.api.ApiService;
-import com.stocks.core.model.StockModels;
+import com.stocks.core.model.StockModel;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -22,13 +22,13 @@ public class ApiClient {
         apiService = retrofit.create(ApiService.class);
     }
 
-    public void fetchChartData(String symbol, String range, String interval, Callback<StockModels> callback) {
-        Call<StockModels> call = apiService.getChartData(symbol, range, interval);
+    public void fetchChartData(String symbol, String range, String interval, Callback<StockModel> callback) {
+        Call<StockModel> call = apiService.getChartData(symbol, range, interval);
         call.enqueue(callback);
     }
 
-    public void fetchStockData(String symbol, Callback<StockModels> callback) {
-        Call<StockModels> call = apiService.getStockData(symbol);
+    public void fetchStockData(String symbol, Callback<StockModel> callback) {
+        Call<StockModel> call = apiService.getStockData(symbol);
         call.enqueue(callback);
     }
 }
